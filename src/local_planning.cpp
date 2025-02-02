@@ -5,41 +5,34 @@ namespace Local_Planning{
 // 局部规划算法 初始化函数
 void Local_Planner::init(ros::NodeHandle& nh){
     // 参数读取
-    // 激光雷达模型,0代表3d雷达,1代表2d雷达
-    // 3d雷达输入类型为 <sensor_msgs::PointCloud2> 2d雷达输入类型为 <sensor_msgs::LaserScan>
-    nh.param("local_planner/lidar_model", lidar_model, 0);
     // 最大速度
     nh.param("local_planner/max_planning_vel", max_planning_vel, 0.4);
-
-    // 订阅目标点
-    goal_sub = nh.subscribe("/prometheus/planning/goal", 1, &Local_Planner::goal_cb, this);
-    // 订阅 无人机状态
-    drone_state_sub = nh.subscribe<prometheus_msgs::DroneState>("/prometheus/drone_state", 10, &Local_Planner::drone_state_cb, this);
-    // 订阅传感器点云信息,该话题名字可在launch文件中任意指定
-    if (lidar_model == 0){
-        local_point_clound_sub = nh.subscribe<sensor_msgs::PointCloud2>("/prometheus/sensors/3Dlidar_scan", 1, &Local_Planner::localcloudCallback, this);
-    }else if (lidar_model == 1){
-        local_point_clound_sub = nh.subscribe<sensor_msgs::LaserScan>("/prometheus/planning/local_pcl", 1, &Local_Planner::laserscanCallback, this);
-    }
-
-    // 发布 期望速度
-    command_pub = nh.advertise<prometheus_msgs::ControlCommand>("/prometheus/control_command", 10);
-    // 发布速度用于显示
-    rviz_vel_pub = nh.advertise<geometry_msgs::Point>("/prometheus/local_planner/desired_vel", 10); 
 
     // 定时函数,执行周期为1Hz
     mainloop_timer = nh.createTimer(ros::Duration(0.2), &Local_Planner::mainloop_cb, this);
     // 控制定时器
     control_timer = nh.createTimer(ros::Duration(0.05), &Local_Planner::control_cb, this);
 
-    // 设置cout的精度为小数点后两位
-    std::cout << std::fixed << std::setprecision(2);
+    // 订阅目标点
+    goal_sub = nh.subscribe("/prometheus/planning/goal", 1, &Local_Planner::goal_cb, this);
+    // 订阅 无人机状态
+    drone_state_sub = nh.subscribe<prometheus_msgs::DroneState>("/prometheus/drone_state", 10, &Local_Planner::drone_state_cb, this);
+    // 订阅传感器点云信息,该话题名字可在launch文件中任意指定
+    local_point_clound_sub = nh.subscribe<sensor_msgs::PointCloud2>("/prometheus/sensors/3Dlidar_scan", 1, &Local_Planner::localcloudCallback, this);
 
-    cout << "[planner] APF-Planner initialized!" << endl;
+    // 发布 期望速度
+    command_pub = nh.advertise<prometheus_msgs::ControlCommand>("/prometheus/control_command", 10);
+    // 发布速度用于显示
+    rviz_vel_pub = nh.advertise<geometry_msgs::Point>("/prometheus/local_planner/desired_vel", 10); 
+
+    // 设置cout的精度为小数点后两位
+    std::cout << std::fixed << std::setprecision(4);
+
+    cout << "[planner] apf_local_planner initialized!" << endl;
 
     // 选择避障算法
-        local_alg_ptr.reset(new APF);
-        local_alg_ptr->init(nh);
+    local_alg_ptr.reset(new APF);
+    local_alg_ptr->init(nh);
 
     // 规划器状态参数初始化
     exec_state = EXEC_STATE::WAIT_GOAL;
@@ -87,32 +80,6 @@ void Local_Planner::drone_state_cb(const prometheus_msgs::DroneStateConstPtr& ms
     local_alg_ptr->set_odom(Drone_odom);
 }
 
-void Local_Planner::laserscanCallback(const sensor_msgs::LaserScanConstPtr &msg){
-    sensor_msgs::LaserScan::ConstPtr _laser_scan;
-
-    _laser_scan = msg;
-
-    pcl::PointCloud<pcl::PointXYZ> _pointcloud;
-
-    _pointcloud.clear();
-    pcl::PointXYZ newPoint;
-    double newPointAngle;
-
-    int beamNum = _laser_scan->ranges.size();
-    for (int i = 0; i < beamNum; i++){
-        newPointAngle = _laser_scan->angle_min + _laser_scan->angle_increment * i;
-        newPoint.x = _laser_scan->ranges[i] * cos(newPointAngle);
-        newPoint.y = _laser_scan->ranges[i] * sin(newPointAngle);
-        newPoint.z = _DroneState.position[2];
-        _pointcloud.push_back(newPoint);
-    }
-
-    pcl_ptr = _pointcloud.makeShared();
-    local_alg_ptr->set_local_map_pcl(pcl_ptr);
-
-    latest_local_pcl_ = *pcl_ptr; 
-}
-
 void Local_Planner::localcloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg){
     local_map_ptr_ = msg;
     local_alg_ptr->set_local_map(local_map_ptr_);
@@ -120,10 +87,8 @@ void Local_Planner::localcloudCallback(const sensor_msgs::PointCloud2ConstPtr &m
     pcl::fromROSMsg(*msg, latest_local_pcl_);
 }
 
-void Local_Planner::control_cb(const ros::TimerEvent& e)
-{
-    if(!path_ok)
-    {
+void Local_Planner::control_cb(const ros::TimerEvent& e){
+    if(!path_ok){
         return;
     }
 
@@ -199,7 +164,8 @@ void Local_Planner::mainloop_cb(const ros::TimerEvent& e){
 
             if(planner_state == 1){
                 cout << "[planner] desired vel: " << desired_vel(0) << " " << desired_vel(1) << " " << desired_vel(2) << endl;
-            }else if(planner_state == 2){
+            }
+            else if(planner_state == 2){
                 cout << "[planner] Dangerous!" << endl;
             }
             break;

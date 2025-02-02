@@ -1,11 +1,7 @@
 <!-- APF-Planner 仿真 -->
 <launch>
     <!-- 启动全局规划算法 -->
-    <node pkg="apf_planner" type="local_planner_main" name="local_planner_main" output="screen" launch-prefix="gnome-terminal --">
-        <!-- 参数 -->
-        <param name="uav_id" value="1"/>
-        <!-- 地图输入模式 0代表全局点云，1代表局部点云，2代表激光雷达scan数据 -->
-        <param name="local_planner/map_input_source" value="0"/>
+    <node pkg="apf_local_planner" type="apf_local_planner" name="apf_local_planner" output="screen" launch-prefix="gnome-terminal --">
         <param name="local_planner/local_pcl_topic_name" value="/prometheus/merged_pcl"/>
         <!-- 最大速度 -->
         <param name="local_planner/max_planning_vel" value="0.6"/>
@@ -28,11 +24,5 @@
         <param name="apf/ground_safe_height" value="0.3" type="double"/>
         <!-- 停止距离，小于该距离，停止自动飞行 -->
         <param name="apf/safe_distance" value="0.1" type="double"/>
-    </node>
-
-    <!-- 启动规划mission， 激光输入control_yaw_flag设为false，rgbd输入control_yaw_flag设为true -->
-    <node pkg="prometheus_mission" type="planning_mission" name="planning_mission" output="screen" launch-prefix="gnome-terminal --">
-        <param name="planning_mission/control_yaw_flag" value="false" type="bool"/>
-        <param name="planning_mission/sim_mode" value="true" type="bool"/>
     </node>
 </launch>

@@ -22,8 +22,8 @@
 #include "message_utils.h"
 
 using namespace std;
-#define NODE_NAME "Local_Planner [main]"
 
+#define NODE_NAME "Local_Planner [main]"
 #define MIN_DIS 0.2
 
 namespace Local_Planning{
@@ -32,7 +32,6 @@ private:
     ros::NodeHandle local_planner_nh;
 
     // 参数
-    int lidar_model;
     double max_planning_vel;
     double safe_distance;
 
@@ -85,14 +84,14 @@ private:
     void goal_cb(const geometry_msgs::PoseStampedConstPtr& msg);
     void drone_state_cb(const prometheus_msgs::DroneStateConstPtr &msg);
     void localcloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg);
-    void laserscanCallback(const sensor_msgs::LaserScanConstPtr &msg);
     void mainloop_cb(const ros::TimerEvent& e);
     void control_cb(const ros::TimerEvent& e);
 
 public:
 
     Local_Planner(void):
-        local_planner_nh("~") {}~Local_Planner(){}
+    local_planner_nh("~") {}
+    ~Local_Planner(){}
 
     double obs_distance;
     double att_distance;
