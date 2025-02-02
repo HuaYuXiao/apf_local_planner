@@ -1,19 +1,14 @@
 #include <ros/ros.h>
-#include <visualization_msgs/Marker.h>
-
-
 #include "local_planning.h"
-
 
 using namespace Local_Planning;
 
-int main(int argc, char** argv)
-{
-  ros::init(argc, argv, "local_planner_node");
+int main(int argc, char** argv){
+  ros::init(argc, argv, "apf_local_planner");
   ros::NodeHandle nh("~");
 
-  Local_Planner local_planning;
-  local_planning.init(nh);
+  Local_Planner apf_local_planner;
+  apf_local_planner.init(nh);
 
   ros::spin();
 
