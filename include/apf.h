@@ -43,7 +43,7 @@ private:
     
 public:
 
-    virtual void set_odom(nav_msgs::Odometry cur_odom);
+    virtual void set_odom(const nav_msgs::Odometry cur_odom);
     virtual void set_local_map(sensor_msgs::PointCloud2ConstPtr &local_map_ptr);
     virtual void set_local_map_pcl(pcl::PointCloud<pcl::PointXYZ>::Ptr &pcl_ptr);
     virtual int compute_force(Eigen::Vector3d &goal, Eigen::Vector3d &desired_vel);

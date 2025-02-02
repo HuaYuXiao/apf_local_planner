@@ -16,7 +16,6 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include "prometheus_msgs/PositionReference.h"
 #include "prometheus_msgs/Message.h"
-#include "prometheus_msgs/DroneState.h"
 #include "prometheus_msgs/ControlCommand.h"
 #include "apf.h"
 #include "message_utils.h"
@@ -31,14 +30,20 @@ class Local_Planner{
 private:
     ros::NodeHandle local_planner_nh;
 
+    // odometry state
+    ros::Subscriber odom_sub_;
+    bool have_odom_;
+    // TODO: change to odom lost check
+    ros::Time last_odom_stamp_;
+    Eigen::Vector3d odom_pos_, odom_vel_, odom_acc_;
+    double odom_roll_, odom_pitch_, odom_yaw_;
+
     // 参数
     double max_planning_vel;
     double safe_distance;
 
-    // 订阅无人机状态、目标点、传感器数据（生成地图）
+    // 订阅目标点、传感器数据（生成地图）
     ros::Subscriber goal_sub;
-    ros::Subscriber drone_state_sub;
-
     ros::Subscriber local_point_clound_sub;
     ros::Subscriber swith_sub;
 
@@ -49,8 +54,6 @@ private:
     // 局部避障算法 算子
     local_planning_alg::Ptr local_alg_ptr;
 
-    prometheus_msgs::DroneState _DroneState;
-    nav_msgs::Odometry Drone_odom;
     prometheus_msgs::ControlCommand Command_Now;  
 
     double distance_to_goal;
@@ -82,7 +85,6 @@ private:
     pcl::PointCloud<pcl::PointXYZ> latest_local_pcl_;
 
     void goal_cb(const geometry_msgs::PoseStampedConstPtr& msg);
-    void drone_state_cb(const prometheus_msgs::DroneStateConstPtr &msg);
     void localcloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg);
     void mainloop_cb(const ros::TimerEvent& e);
     void control_cb(const ros::TimerEvent& e);

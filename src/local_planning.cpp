@@ -4,7 +4,6 @@
 namespace Local_Planning{
 // 局部规划算法 初始化函数
 void Local_Planner::init(ros::NodeHandle& nh){
-    // 参数读取
     // 最大速度
     nh.param("local_planner/max_planning_vel", max_planning_vel, 0.4);
 
@@ -13,17 +12,21 @@ void Local_Planner::init(ros::NodeHandle& nh){
     // 控制定时器
     control_timer = nh.createTimer(ros::Duration(0.05), &Local_Planner::control_cb, this);
 
+    odom_sub_ = nh.subscribe<nav_msgs::Odometry>
+                ("/mavros/local_position/odom", 10, &Local_Planner::odometryCallback, this);
     // 订阅目标点
-    goal_sub = nh.subscribe("/prometheus/planning/goal", 1, &Local_Planner::goal_cb, this);
-    // 订阅 无人机状态
-    drone_state_sub = nh.subscribe<prometheus_msgs::DroneState>("/prometheus/drone_state", 10, &Local_Planner::drone_state_cb, this);
+    goal_sub = nh.subscribe
+    ("/planner/goal", 1, &Local_Planner::goal_cb, this);
     // 订阅传感器点云信息,该话题名字可在launch文件中任意指定
-    local_point_clound_sub = nh.subscribe<sensor_msgs::PointCloud2>("/prometheus/sensors/3Dlidar_scan", 1, &Local_Planner::localcloudCallback, this);
+    local_point_clound_sub = nh.subscribe<sensor_msgs::PointCloud2>
+    ("/prometheus/sensors/3Dlidar_scan", 1, &Local_Planner::localcloudCallback, this);
 
     // 发布 期望速度
-    command_pub = nh.advertise<prometheus_msgs::ControlCommand>("/prometheus/control_command", 10);
+    command_pub = nh.advertise<prometheus_msgs::ControlCommand>
+    ("/prometheus/control_command", 10);
     // 发布速度用于显示
-    rviz_vel_pub = nh.advertise<geometry_msgs::Point>("/prometheus/local_planner/desired_vel", 10); 
+    rviz_vel_pub = nh.advertise<geometry_msgs::Point>
+    ("/prometheus/local_planner/desired_vel", 10); 
 
     // 设置cout的精度为小数点后两位
     std::cout << std::fixed << std::setprecision(4);
@@ -53,31 +56,48 @@ void Local_Planner::init(ros::NodeHandle& nh){
     ros::spin();
 }
 
+// 保存无人机当前里程计信息，包括位置、速度和姿态
+void odometryCallback(const nav_msgs::Odometry::ConstPtr& msg){
+    // TODO: add odom lost check
+    have_odom_ = true;
+    last_odom_stamp_ = ros::Time::now();
+
+    odom_pos_ << msg->pose.pose.position.x,
+            msg->pose.pose.position.y,
+            msg->pose.pose.position.z;
+    start_pos = odom_pos_;
+
+    odom_vel_ << msg->twist.twist.linear.x,
+            msg->twist.twist.linear.y,
+            msg->twist.twist.linear.z;
+    start_vel = odom_vel_;
+
+    //odom_acc_ = estimateAcc( msg );
+
+    // 将四元数转换至(roll,pitch,yaw)  by a 3-2-1 intrinsic Tait-Bryan rotation sequence
+    // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+    tf::Quaternion odom_q_(
+            msg->pose.pose.orientation.x,
+            msg->pose.pose.orientation.y,
+            msg->pose.pose.orientation.z,
+            msg->pose.pose.orientation.w
+    );
+
+    tf::Matrix3x3(odom_q_).getRPY(odom_roll_, odom_pitch_, odom_yaw_);
+
+    if (local_alg_ptr) {
+        local_alg_ptr->set_odom(*msg);
+    } else {
+        ROS_ERROR("local_alg_ptr is nullptr");
+    }
+}
+
 void Local_Planner::goal_cb(const geometry_msgs::PoseStampedConstPtr& msg){
-        goal_pos << msg->pose.position.x, msg->pose.position.y, _DroneState.position[2];
+    goal_pos << msg->pose.position.x, msg->pose.position.y, odom_pos_[2];
     goal_vel.setZero();
     goal_yaw = 2 * std::atan2(msg->pose.orientation.z, msg->pose.orientation.w);
 
     goal_ready = true;
-}
-
-void Local_Planner::drone_state_cb(const prometheus_msgs::DroneStateConstPtr& msg){
-    _DroneState = *msg;
-
-        start_pos << msg->position[0], msg->position[1], msg->position[2];
-        start_vel << msg->velocity[0], msg->velocity[1], msg->velocity[2];
-
-    Drone_odom.header = _DroneState.header;
-    Drone_odom.child_frame_id = "base_link";
-    Drone_odom.pose.pose.position.x = _DroneState.position[0];
-    Drone_odom.pose.pose.position.y = _DroneState.position[1];
-    Drone_odom.pose.pose.position.z = _DroneState.position[2];
-    Drone_odom.pose.pose.orientation = _DroneState.attitude_q;
-    Drone_odom.twist.twist.linear.x = _DroneState.velocity[0];
-    Drone_odom.twist.twist.linear.y = _DroneState.velocity[1];
-    Drone_odom.twist.twist.linear.z = _DroneState.velocity[2];
-
-    local_alg_ptr->set_odom(Drone_odom);
 }
 
 void Local_Planner::localcloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg){
