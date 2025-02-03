@@ -20,10 +20,10 @@ using namespace std;
 
 #define MIN_DIS 0.2
 
-namespace Local_Planning{
+namespace apf_local_planner{
 class Local_Planner{
 private:
-    ros::NodeHandle local_planner_nh;
+    ros::NodeHandle nh;
 
     // odometry state
     ros::Subscriber odom_sub_;
@@ -41,7 +41,6 @@ private:
     ros::Subscriber goal_sub;
     ros::Subscriber local_point_clound_sub;
 
-    ros::Publisher rviz_vel_pub;
     ros::Timer mainloop_timer, control_timer;
 
     // 局部避障算法 算子
@@ -66,8 +65,6 @@ private:
     int planner_state;
     Eigen::Vector3d desired_vel;
 
-    geometry_msgs::Point vel_rviz;
-
     // 五种状态机
     enum EXEC_STATE{
         WAIT_GOAL,
@@ -86,7 +83,7 @@ private:
     void control_cb(const ros::TimerEvent& e);
 
 public:
-    Local_Planner(void): local_planner_nh("~") {}
+    Local_Planner(void): nh("~") {}
     ~Local_Planner(){}
 
     double obs_distance;

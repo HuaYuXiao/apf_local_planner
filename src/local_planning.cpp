@@ -24,9 +24,6 @@ void Local_Planner::init(ros::NodeHandle& nh){
     //　【发布】控制指令
     easondrone_ctrl_pub = nh.advertise<easondrone_msgs::ControlCommand>
             ("/easondrone/control_command", 10);
-    // 发布速度用于显示
-    rviz_vel_pub = nh.advertise<geometry_msgs::Point>
-            ("/apf_local_planner/desired_vel", 10); 
 
     // 设置cout的精度为小数点后两位
     std::cout << std::fixed << std::setprecision(4);
@@ -138,13 +135,6 @@ void Local_Planner::control_cb(const ros::TimerEvent& e){
         ctrl_cmd_out_.poscmd.yaw = goal_yaw;
 
         easondrone_ctrl_pub.publish(ctrl_cmd_out_);
-
-        //　发布rviz显示
-        vel_rviz.x = desired_vel(0);
-        vel_rviz.y = desired_vel(1);
-        vel_rviz.z = desired_vel(2);
-
-        rviz_vel_pub.publish(vel_rviz);
     }
 }
 
