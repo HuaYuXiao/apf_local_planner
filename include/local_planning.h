@@ -5,24 +5,19 @@
 #include <Eigen/Eigen>
 #include <iostream>
 #include <algorithm>
+#include <tf/tf.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <std_msgs/Int8.h>
-#include <std_msgs/Bool.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/LaserScan.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include "prometheus_msgs/PositionReference.h"
-#include "prometheus_msgs/Message.h"
-#include "prometheus_msgs/ControlCommand.h"
+#include <easondrone_msgs/ControlCommand.h>
 #include "apf.h"
-#include "message_utils.h"
 
 using namespace std;
 
-#define NODE_NAME "Local_Planner [main]"
 #define MIN_DIS 0.2
 
 namespace Local_Planning{
@@ -45,16 +40,17 @@ private:
     // 订阅目标点、传感器数据（生成地图）
     ros::Subscriber goal_sub;
     ros::Subscriber local_point_clound_sub;
-    ros::Subscriber swith_sub;
 
-    // 发布控制指令
-    ros::Publisher command_pub,rviz_vel_pub;
-    ros::Timer mainloop_timer,control_timer;
+    ros::Publisher rviz_vel_pub;
+    ros::Timer mainloop_timer, control_timer;
 
     // 局部避障算法 算子
     local_planning_alg::Ptr local_alg_ptr;
 
-    prometheus_msgs::ControlCommand Command_Now;  
+    // 无人机当前执行命令
+    easondrone_msgs::ControlCommand ctrl_cmd_out_;
+    // 发布控制指令
+    ros::Publisher easondrone_ctrl_pub; 
 
     double distance_to_goal;
 
@@ -69,7 +65,6 @@ private:
 
     int planner_state;
     Eigen::Vector3d desired_vel;
-    float desired_yaw;
 
     geometry_msgs::Point vel_rviz;
 
@@ -84,15 +79,14 @@ private:
     pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_ptr;
     pcl::PointCloud<pcl::PointXYZ> latest_local_pcl_;
 
+    void odometryCallback(const nav_msgs::Odometry::ConstPtr& msg);
     void goal_cb(const geometry_msgs::PoseStampedConstPtr& msg);
     void localcloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg);
     void mainloop_cb(const ros::TimerEvent& e);
     void control_cb(const ros::TimerEvent& e);
 
 public:
-
-    Local_Planner(void):
-    local_planner_nh("~") {}
+    Local_Planner(void): local_planner_nh("~") {}
     ~Local_Planner(){}
 
     double obs_distance;
@@ -101,7 +95,6 @@ public:
     Eigen::Matrix<double, 3, 1> total_force;
 
     void init(ros::NodeHandle& nh);
-
 };
 }
 #endif 

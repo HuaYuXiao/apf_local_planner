@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
        geometry_msgs
        nav_msgs
        mavros_msgs
+       tf
+       easondrone_msgs
 	)
 
 catkin_package(
