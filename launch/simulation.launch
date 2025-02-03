@@ -1,8 +1,4 @@
 <launch>
-    <!-- parameter for planner -->
-    <arg name="model" default="p450_3Dlidar_D435i"/>
-    <arg name="planner" default="APF-Planner"/>
-
     <!-- world -->
     <include file="$(find prometheus_gazebo)/launch/GFKD.launch"/>
 
@@ -15,8 +11,8 @@
     <include file="$(find apf_planner)/launch/mapping.launch"/>
 
     <!-- 启动导航 -->
-    <include file="$(find apf_planner)/launch/$(arg planner).launch"/>
+    <include file="$(find apf_local_planner)/launch/apf_local_planner.launch"/>
 
     <!-- 启动rviz -->
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find apf_planner)/config/$(arg planner).rviz"/>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find apf_local_planner)/config/apf_local_planner.rviz"/>
 </launch>

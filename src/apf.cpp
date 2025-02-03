@@ -28,7 +28,7 @@ void APF::set_local_map_pcl(pcl::PointCloud<pcl::PointXYZ>::Ptr &pcl_ptr){
     has_local_map_=true;
 }
 
-void APF::set_odom(nav_msgs::Odometry cur_odom){
+void APF::set_odom(const nav_msgs::Odometry cur_odom){
     cur_odom_ = cur_odom;
     has_odom_=true;
 }
