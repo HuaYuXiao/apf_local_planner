@@ -1,11 +1,11 @@
 #include "local_planning.h"
 #include <cmath>
 
-namespace Local_Planning{
+namespace apf_local_planner{
 // 局部规划算法 初始化函数
 void Local_Planner::init(ros::NodeHandle& nh){
     // 最大速度
-    nh.param("local_planner/max_planning_vel", max_planning_vel, 0.4);
+    nh.param("manager/max_vel", max_planning_vel, 0.4);
 
     // 定时函数,执行周期为1Hz
     mainloop_timer = nh.createTimer(ros::Duration(0.2), &Local_Planner::mainloop_cb, this);
@@ -19,14 +19,14 @@ void Local_Planner::init(ros::NodeHandle& nh){
             ("/planner/goal", 1, &Local_Planner::goal_cb, this);
     // 订阅传感器点云信息,该话题名字可在launch文件中任意指定
     local_point_clound_sub = nh.subscribe<sensor_msgs::PointCloud2>
-            ("/prometheus/sensors/3Dlidar_scan", 1, &Local_Planner::localcloudCallback, this);
+            ("/lidar/livox", 1, &Local_Planner::localcloudCallback, this);
 
     //　【发布】控制指令
     easondrone_ctrl_pub = nh.advertise<easondrone_msgs::ControlCommand>
             ("/easondrone/control_command", 10);
     // 发布速度用于显示
     rviz_vel_pub = nh.advertise<geometry_msgs::Point>
-            ("/prometheus/local_planner/desired_vel", 10); 
+            ("/apf_local_planner/desired_vel", 10); 
 
     // 设置cout的精度为小数点后两位
     std::cout << std::fixed << std::setprecision(4);
@@ -118,16 +118,6 @@ void Local_Planner::control_cb(const ros::TimerEvent& e){
 
     // 抵达终点
     if(distance_to_goal < MIN_DIS){
-        ctrl_cmd_out_.header.stamp = ros::Time::now();
-        ctrl_cmd_out_.mode = easondrone_msgs::ControlCommand::Move;
-        ctrl_cmd_out_.frame = easondrone_msgs::ControlCommand::ENU;
-        ctrl_cmd_out_.poscmd.position.x = goal_pos[0];
-        ctrl_cmd_out_.poscmd.position.y = goal_pos[1];
-        ctrl_cmd_out_.poscmd.position.z = goal_pos[2];
-        ctrl_cmd_out_.poscmd.yaw = goal_yaw;
-
-        easondrone_ctrl_pub.publish(ctrl_cmd_out_);
-
         cout << "[planner] Reach the goal!" << endl;
         
         // 停止执行
@@ -139,6 +129,9 @@ void Local_Planner::control_cb(const ros::TimerEvent& e){
         ctrl_cmd_out_.header.stamp = ros::Time::now();
         ctrl_cmd_out_.mode = easondrone_msgs::ControlCommand::Move;
         ctrl_cmd_out_.frame = easondrone_msgs::ControlCommand::ENU;
+        ctrl_cmd_out_.poscmd.position.x = goal_pos[0];
+        ctrl_cmd_out_.poscmd.position.y = goal_pos[1];
+        ctrl_cmd_out_.poscmd.position.z = goal_pos[2];
         ctrl_cmd_out_.poscmd.velocity.x = desired_vel[0];
         ctrl_cmd_out_.poscmd.velocity.y = desired_vel[1];
         ctrl_cmd_out_.poscmd.velocity.z = desired_vel[2];
