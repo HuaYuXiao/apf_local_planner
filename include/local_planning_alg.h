@@ -3,21 +3,18 @@
 
 #include <Eigen/Eigen>
 #include <iostream>
-
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <std_msgs/Empty.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <nav_msgs/Odometry.h>
-
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
 using namespace std;
 
-namespace Local_Planning{
+namespace apf_local_planner{
 
 class local_planning_alg{
 public:
@@ -31,7 +28,6 @@ public:
 
     typedef shared_ptr<local_planning_alg> Ptr;
 };
-
 }
 
 #endif 

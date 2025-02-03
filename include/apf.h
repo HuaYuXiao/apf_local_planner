@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <iostream>
 #include <geometry_msgs/PoseStamped.h>
-#include <std_msgs/Empty.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <nav_msgs/Odometry.h>
 #include <pcl/point_cloud.h>
@@ -17,8 +16,8 @@
 
 using namespace std;
 
-namespace Local_Planning{
-class APF:public local_planning_alg{
+namespace apf_local_planner{
+class APF: public local_planning_alg{
 private:
     //　参数
     double inflate_distance;
@@ -42,7 +41,6 @@ private:
     nav_msgs::Odometry cur_odom_;
     
 public:
-
     virtual void set_odom(const nav_msgs::Odometry cur_odom);
     virtual void set_local_map(sensor_msgs::PointCloud2ConstPtr &local_map_ptr);
     virtual void set_local_map_pcl(pcl::PointCloud<pcl::PointXYZ>::Ptr &pcl_ptr);
@@ -52,7 +50,6 @@ public:
     ~APF(){}
 
     typedef shared_ptr<APF> Ptr;
-
 };
 }
 

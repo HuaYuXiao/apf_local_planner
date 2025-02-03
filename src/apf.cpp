@@ -1,16 +1,16 @@
 #include "apf.h"
 
-namespace Local_Planning{
+namespace apf_local_planner{
 void APF::init(ros::NodeHandle& nh){
     has_local_map_ = false;
 
-    nh.param("apf/inflate_distance", inflate_distance, 0.35);  // 感知障碍物距离
+    nh.param("grid_map/obstacles_inflation", inflate_distance, 0.35);  // 感知障碍物距离
     nh.param("apf/sensor_max_range", sensor_max_range, 5.0);  // 感知障碍物距离
     nh.param("apf/k_push", k_push, 0.8);                         // 推力增益
     nh.param("apf/k_att", k_att, 0.4);                                  // 引力增益
     nh.param("apf/min_dist", min_dist, 0.2);                            // 最小壁障距离
     nh.param("apf/max_att_dist", max_att_dist, 5.0);             // 最大吸引距离
-    nh.param("apf/ground_height", ground_height, 0.1);  // 地面高度
+    nh.param("grid_map/ground_height", ground_height, 0.1);  // 地面高度
     nh.param("apf/ground_safe_height", ground_safe_height, 0.3);  // 地面安全距离
     nh.param("apf/safe_distance", safe_distance, 0.1); // 安全停止距离
 }

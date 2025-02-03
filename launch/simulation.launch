@@ -1,14 +1,17 @@
 <launch>
-    <!-- world -->
-    <include file="$(find prometheus_gazebo)/launch/GFKD.launch"/>
+    <include file="$(find easondrone_gazebo)/launch/mavros_posix_sitl.launch">
+        <arg name="world" default="$(find easondrone_gazebo)/worlds/competition/cuadc2024.world"/>
+        <arg name="sdf" default="$(find easondrone_gazebo)/models/drone/iris_d435i_mid360/iris_d435i_mid360.sdf"/>
+        <arg name="gui" default="false"/>
+    </include>
 
-    <!-- 1号无人机 -->
-    <include file="$(find prometheus_gazebo)/launch/sitl_$(arg model).launch"/>
+    <node name="filter_pc" type="filter_pc" pkg="easondrone_mapping"/>
 
-    <include file="$(find uav_control)/launch/uav_control_main_indoor.launch"/>
+    <include file="$(find easondrone_gazebo)/launch/transform.launch"/>
 
-    <!-- 启动octomap建图 -->
-    <include file="$(find apf_planner)/launch/mapping.launch"/>
+    <include file="$(find px4ctrl)/launch/px4ctrl.launch"/>
+
+    <node type="odom_visualization" pkg="odom_visualization" name="odom_visualization"/>
 
     <!-- 启动导航 -->
     <include file="$(find apf_local_planner)/launch/apf_local_planner.launch"/>
