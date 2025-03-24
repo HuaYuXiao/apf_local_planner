@@ -44,13 +44,14 @@ void Local_Planner::init(ros::NodeHandle& nh){
     local_map_ptr_ = init_local_map;
 
     // 初始化命令
-    ctrl_cmd_out_.header.stamp = ros::Time::now();
-    ctrl_cmd_out_.mode = easondrone_msgs::ControlCommand::Move;
-    ctrl_cmd_out_.frame = easondrone_msgs::ControlCommand::ENU;
-    ctrl_cmd_out_.poscmd.position.x = 0;
-    ctrl_cmd_out_.poscmd.position.y = 0;
-    ctrl_cmd_out_.poscmd.position.z = 0;
-    ctrl_cmd_out_.poscmd.yaw = 0;
+    ctrl_cmd_out_.header.stamp      = ros::Time::now();
+    ctrl_cmd_out_.mode              = easondrone_msgs::ControlCommand::Move;
+    ctrl_cmd_out_.setpoint_type     = easondrone_msgs::ControlCommand::SETPOINT_TYPE_VELOCITY;
+    ctrl_cmd_out_.coordinate_frame  = easondrone_msgs::ControlCommand:: FRAME_LOCAL_NED;
+    ctrl_cmd_out_.poscmd.velocity.x = 0;
+    ctrl_cmd_out_.poscmd.velocity.y = 0;
+    ctrl_cmd_out_.poscmd.velocity.z = 0;
+    ctrl_cmd_out_.poscmd.yaw        = 0;
 
     ros::spin();
 }
@@ -123,16 +124,14 @@ void Local_Planner::control_cb(const ros::TimerEvent& e){
         exec_state = EXEC_STATE::WAIT_GOAL;
     }
     else{
-        ctrl_cmd_out_.header.stamp = ros::Time::now();
-        ctrl_cmd_out_.mode = easondrone_msgs::ControlCommand::Move;
-        ctrl_cmd_out_.frame = easondrone_msgs::ControlCommand::ENU;
-        ctrl_cmd_out_.poscmd.position.x = goal_pos[0];
-        ctrl_cmd_out_.poscmd.position.y = goal_pos[1];
-        ctrl_cmd_out_.poscmd.position.z = goal_pos[2];
+        ctrl_cmd_out_.header.stamp      = ros::Time::now();
+        ctrl_cmd_out_.mode              = easondrone_msgs::ControlCommand::Move;
+        ctrl_cmd_out_.setpoint_type     = easondrone_msgs::ControlCommand::SETPOINT_TYPE_VELOCITY;
+        ctrl_cmd_out_.coordinate_frame  = easondrone_msgs::ControlCommand::FRAME_LOCAL_NED;
         ctrl_cmd_out_.poscmd.velocity.x = desired_vel[0];
         ctrl_cmd_out_.poscmd.velocity.y = desired_vel[1];
         ctrl_cmd_out_.poscmd.velocity.z = desired_vel[2];
-        ctrl_cmd_out_.poscmd.yaw = goal_yaw;
+        ctrl_cmd_out_.poscmd.yaw        = goal_yaw;
 
         easondrone_ctrl_pub.publish(ctrl_cmd_out_);
     }
